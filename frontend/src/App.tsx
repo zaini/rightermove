@@ -18,13 +18,14 @@ import { ArrowDownIcon, ArrowUpIcon } from "@chakra-ui/icons";
 
 const App = () => {
   const [searchUrl, setSearchUrl] = useState(
-    "https://www.rightmove.co.uk/property-for-sale/find.html?locationIdentifier=REGION%5E599&minBedrooms=2&maxPrice=300000&minPrice=100000&propertyTypes=&includeSSTC=false&mustHave=&dontShow=&furnishTypes=&keywords="
+    "https://www.rightmove.co.uk/property-for-sale/find.html?locationIdentifier=USERDEFINEDAREA%5E%7B%22id%22%3A7170387%7D&minBedrooms=2&maxPrice=600000&minPrice=200000&propertyTypes=detached%2Cflat%2Csemi-detached%2Cterraced&secondaryDisplayPropertyType=housesandflats&mustHave=&dontShow=newHome%2CsharedOwnership%2Cretirement&furnishTypes=&keywords="
   );
   const [address, setAddress] = useState("Soho Square London");
   const [properties, setProperties] = useState([]);
   const [summary, setSummary] = useState([]);
   const [sortType, setSortType] = useState("price");
   const [increasingSort, setIncreasingSort] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchProperties = async () => {
     const url = `http://localhost:5000/properties?url=${encodeURIComponent(
@@ -65,13 +66,15 @@ const App = () => {
   };
 
   useEffect(() => {
-    // fetchProperties();
-    // fetchSummary()
+    setIsLoading(true);
+    fetchSummary();
+    fetchProperties();
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
     sortProperties();
-  }, [sortType, increasingSort]);
+  }, [properties, sortType, increasingSort]);
 
   return (
     <Box mx={16}>
@@ -91,24 +94,30 @@ const App = () => {
       </InputGroup>
 
       <Button
-        onClick={() => {
-          // fetchProperties();
-          fetchSummary();
+        onClick={async () => {
+          setIsLoading(true);
+          await fetchSummary();
+          await fetchProperties();
+          setIsLoading(false);
         }}
       >
         Search
       </Button>
 
-      <List my={4}>
-        {summary.map((e) => {
-          return (
-            <ListItem>
-              {e["count"]}x {e["number_bedrooms"]} bedrooms with an average cost
-              of £{Math.floor(e["mean"])}
-            </ListItem>
-          );
-        })}
-      </List>
+      {isLoading ? (
+        <Text>Loading summary...</Text>
+      ) : (
+        <List my={4}>
+          {summary.map((e) => {
+            return (
+              <ListItem>
+                {e["count"]}x {e["number_bedrooms"]} bedrooms with an average
+                cost of £{Math.floor(e["mean"])}
+              </ListItem>
+            );
+          })}
+        </List>
+      )}
 
       <InputGroup my={2}>
         <InputLeftAddon children="Sort by" />
@@ -131,7 +140,9 @@ const App = () => {
 
       <Stack my={4}>
         <Text>{properties.length} results</Text>
-        {properties.length > 0 ? (
+        {properties.length === 0 || isLoading ? (
+          <Text>Loading properties... or there are no properties</Text>
+        ) : (
           properties.map((property: Property, i) => {
             return (
               <Box
@@ -143,8 +154,6 @@ const App = () => {
               </Box>
             );
           })
-        ) : (
-          <Text>Loading properties...</Text>
         )}
       </Stack>
     </Box>
