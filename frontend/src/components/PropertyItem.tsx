@@ -13,7 +13,7 @@ const PropertyItem = ({ property }: { property: Property }) => {
         <Text>{property.number_bedrooms || "N/A"}x 🛏</Text>
         <Text>{property.type}</Text>
         <Text>{property.address}</Text>
-        <Text>{property.travel_time} minutes travel</Text>
+        <Text>{property.travel_time || "N/A"} minutes travel</Text>
       </Box>
       <ButtonGroup>
         <IconButton
