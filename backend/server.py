@@ -18,7 +18,10 @@ def get_transit_time(start, end, arrival_time=1644915600):
                                          end,
                                          mode="transit",
                                          arrival_time=arrival_time)
-    return directions_result[0]['legs'][0]['duration']['value']
+    try:
+        return directions_result[0]['legs'][0]['duration']['value']
+    except:
+        return -1
 
 
 @app.route('/properties', methods=['GET'])
