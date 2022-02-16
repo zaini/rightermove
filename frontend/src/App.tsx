@@ -7,6 +7,8 @@ import {
   Input,
   InputGroup,
   InputLeftAddon,
+  List,
+  ListItem,
   Select,
   Stack,
   Text,
@@ -20,10 +22,11 @@ const App = () => {
   );
   const [address, setAddress] = useState("Soho Square London");
   const [properties, setProperties] = useState([]);
+  const [summary, setSummary] = useState([]);
   const [sortType, setSortType] = useState("price");
   const [increasingSort, setIncreasingSort] = useState(true);
 
-  const fetchData = async () => {
+  const fetchProperties = async () => {
     const url = `http://localhost:5000/properties?url=${encodeURIComponent(
       searchUrl
     )}&address=${address}`;
@@ -32,6 +35,20 @@ const App = () => {
       const response = await fetch(url);
       const json = await response.json();
       setProperties(JSON.parse(json["properties"]));
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  const fetchSummary = async () => {
+    const url = `http://localhost:5000/properties/summary?url=${encodeURIComponent(
+      searchUrl
+    )}`;
+
+    try {
+      const response = await fetch(url);
+      const json = await response.json();
+      setSummary(JSON.parse(json["summary"]));
     } catch (error) {
       console.log("error", error);
     }
@@ -48,7 +65,8 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    // fetchProperties();
+    // fetchSummary()
   }, []);
 
   useEffect(() => {
@@ -72,7 +90,25 @@ const App = () => {
         <Input value={address} onChange={(e) => setAddress(e.target.value)} />
       </InputGroup>
 
-      <Button onClick={() => fetchData()}>Search</Button>
+      <Button
+        onClick={() => {
+          // fetchProperties();
+          fetchSummary();
+        }}
+      >
+        Search
+      </Button>
+
+      <List my={4}>
+        {summary.map((e) => {
+          return (
+            <ListItem>
+              {e["count"]}x {e["number_bedrooms"]} bedrooms with an average cost
+              of £{Math.floor(e["mean"])}
+            </ListItem>
+          );
+        })}
+      </List>
 
       <InputGroup my={2}>
         <InputLeftAddon children="Sort by" />

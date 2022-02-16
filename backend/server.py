@@ -40,6 +40,18 @@ def get_properties():
     return {'properties': results.to_json(orient='records')}
 
 
+@app.route('/properties/summary', methods=['GET'])
+def get_summary():
+    args = request.args
+    url = args['url']
+
+    url = urllib.parse.unquote(url)
+    rm = RightmoveData(url)
+    results = rm.summary()
+
+    return {'summary': results.to_json(orient='records')}
+
+
 @app.route('/distance', methods=['GET'])
 def get_distance():
     args = request.args
