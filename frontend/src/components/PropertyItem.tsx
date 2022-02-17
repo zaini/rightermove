@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Text, ButtonGroup, IconButton, Link } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import { BsMap } from "react-icons/bs";
+import { Property } from "../types";
 
 const PropertyItem = ({ property }: { property: Property }) => {
   return (
@@ -10,7 +11,7 @@ const PropertyItem = ({ property }: { property: Property }) => {
         <Text fontSize={28} fontWeight="bold">
           £{property.price || "N/A"}
         </Text>
-        <Text>{property.number_bedrooms || "N/A"}x 🛏</Text>
+        <Text>{property.bedrooms || "N/A"}x 🛏</Text>
         <Text>{property.type}</Text>
         <Text>{property.address}</Text>
         <Text>

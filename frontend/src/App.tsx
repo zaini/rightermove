@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
+  Center,
+  Checkbox,
   Heading,
   IconButton,
   Input,
@@ -10,15 +12,18 @@ import {
   List,
   ListItem,
   Select,
+  Spinner,
   Stack,
   Text,
 } from "@chakra-ui/react";
 import PropertyItem from "./components/PropertyItem";
 import { ArrowDownIcon, ArrowUpIcon } from "@chakra-ui/icons";
+import { Property } from "./types";
+import CustomPropertyItem from "./components/CustomPropertyItem";
 
 const App = () => {
   const [searchUrl, setSearchUrl] = useState(
-    "https://www.rightmove.co.uk/property-for-sale/find.html?locationIdentifier=USERDEFINEDAREA%5E%7B%22id%22%3A7170387%7D&minBedrooms=2&maxPrice=600000&minPrice=200000&propertyTypes=detached%2Cflat%2Csemi-detached%2Cterraced&secondaryDisplayPropertyType=housesandflats&mustHave=&dontShow=newHome%2CsharedOwnership%2Cretirement&furnishTypes=&keywords="
+    "https://www.rightmove.co.uk/property-for-sale/find.html?locationIdentifier=USERDEFINEDAREA%5E%7B%22id%22%3A7170387%7D&minBedrooms=2&maxPrice=600000&minPrice=500000&propertyTypes=detached%2Cflat%2Csemi-detached%2Cterraced&secondaryDisplayPropertyType=housesandflats&mustHave=&dontShow=newHome%2CsharedOwnership%2Cretirement&furnishTypes=&keywords="
   );
   const [address, setAddress] = useState("Soho Square London");
   const [properties, setProperties] = useState([]);
@@ -26,11 +31,12 @@ const App = () => {
   const [sortType, setSortType] = useState("price");
   const [increasingSort, setIncreasingSort] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [useCustomScraper, setUseCustomScraper] = useState(true);
 
   const fetchProperties = async () => {
     const url = `http://localhost:5000/properties?url=${encodeURIComponent(
       searchUrl
-    )}&address=${address}`;
+    )}&address=${address}&custom_scraper=${useCustomScraper}`;
 
     try {
       const response = await fetch(url);
@@ -76,6 +82,8 @@ const App = () => {
     sortProperties();
   }, [properties, sortType, increasingSort]);
 
+  console.log(properties);
+
   return (
     <Box mx={16}>
       <Heading>rightermove</Heading>
@@ -93,6 +101,15 @@ const App = () => {
         <Input value={address} onChange={(e) => setAddress(e.target.value)} />
       </InputGroup>
 
+      <Checkbox
+        isChecked={useCustomScraper}
+        onChange={(e) => setUseCustomScraper(e.target.checked)}
+      >
+        Use custom scraper (experimental)
+      </Checkbox>
+
+      <br />
+
       <Button
         onClick={async () => {
           setIsLoading(true);
@@ -105,7 +122,9 @@ const App = () => {
       </Button>
 
       {isLoading ? (
-        <Text>Loading summary...</Text>
+        <Center>
+          <Spinner />
+        </Center>
       ) : (
         <List my={4}>
           {summary.map((e) => {
@@ -124,7 +143,8 @@ const App = () => {
         <Select value={sortType} onChange={(e) => setSortType(e.target.value)}>
           <option value="price">Price</option>
           <option value="travel_time">Travel Time</option>
-          <option value="number_bedrooms">Bedrooms</option>
+          <option value="bedrooms">Bedrooms</option>
+          <option value="bathrooms">Bathrooms</option>
         </Select>
       </InputGroup>
 
@@ -141,16 +161,23 @@ const App = () => {
       <Stack my={4}>
         <Text>{properties.length} results</Text>
         {properties.length === 0 || isLoading ? (
-          <Text>Loading properties... or there are no properties</Text>
+          <Center>
+            <Spinner />
+          </Center>
         ) : (
-          properties.map((property: Property, i) => {
+          properties.map((property: any, i) => {
             return (
               <Box
                 key={i}
                 backgroundColor={i % 2 === 0 ? "lightgray" : "white"}
                 p={4}
+                border={"1px"}
               >
-                <PropertyItem property={property} />
+                {property["isCustom"] ? (
+                  <CustomPropertyItem property={property} />
+                ) : (
+                  <PropertyItem property={property} />
+                )}
               </Box>
             );
           })

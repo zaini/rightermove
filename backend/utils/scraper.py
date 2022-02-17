@@ -25,6 +25,7 @@ from bs4 import BeautifulSoup
 
 class Property:
     def __init__(self, p):
+        self.isCustom = True
         self.id = p['id']
         self.bedrooms = p['bedrooms']
         self.bathrooms = p['bathrooms']
@@ -45,15 +46,16 @@ class Property:
         }
         self.premiumListing = p['premiumListing']
         self.featuredProperty = p['featuredProperty']
-        self.price = {
-            'amount': p['price']['amount'],
-            'frequency': p['price']['frequency'],
-            'currencyCode': p['price']['currencyCode'],
-            'displayPrices': {
-                'displayPrice': p['price']['displayPrices'][0]['displayPrice'],
-                'displayPriceQualifier': p['price']['displayPrices'][0]['displayPriceQualifier']
-            }
-        }
+        # self.price = {
+        #     'amount': p['price']['amount'],
+        #     'frequency': p['price']['frequency'],
+        #     'currencyCode': p['price']['currencyCode'],
+        #     'displayPrices': {
+        #         'displayPrice': p['price']['displayPrices'][0]['displayPrice'],
+        #         'displayPriceQualifier': p['price']['displayPrices'][0]['displayPriceQualifier']
+        #     }
+        # }
+        self.price = p['price']['amount']
         self.customer = {
             'branchId': p['customer']['branchId'],
             'brandPlusLogoURI': p['customer']['brandPlusLogoURI'],
@@ -108,10 +110,6 @@ class Property:
         self.displayStatus = p['displayStatus']
         self.addedOrReduced = p['addedOrReduced']
         self.heading = p['heading']
-
-    def to_JSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4)
 
 
 def property_json_to_object(property_json):

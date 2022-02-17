@@ -1,10 +1,12 @@
 import os
 import urllib.parse
 import googlemaps
+import json
 from rightmove_webscraper import RightmoveData
 from flask import Flask, request
 from flask_cors import CORS
 from utils.lfu_cache import lfu_cache
+from utils.scraper import get_properties as get_properties_custom_scraper
 
 app = Flask(__name__)
 CORS(app)
@@ -17,6 +19,7 @@ gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
 @lfu_cache(maxsize=512)
 def get_transit_time(start, end, arrival_time=1644915600):
     print("get_transit_time", start, end)
+
     directions_result = gmaps.directions(start,
                                          end,
                                          mode="transit",
@@ -30,23 +33,45 @@ def get_transit_time(start, end, arrival_time=1644915600):
 @lfu_cache(maxsize=128)
 def get_rightmove_properties(url, end_address):
     print("get_rightmove_properties")
+
     rm = RightmoveData(url)
     results = rm.get_results
 
     results['travel_time'] = [get_transit_time(
         address, end_address) // 60 for address in results['address']]
 
+    results = results.rename(columns={'number_bedrooms': 'bedrooms'})
+
     return {'properties': results.to_json(orient='records')}
+
+
+# @lfu_cache(maxsize=128)
+def get_rightmove_properties_custom_scraper(url, end_address):
+    print("get_rightmove_properties_custom_scraper")
+
+    results = get_properties_custom_scraper(url)
+
+    for res in results:
+        travel_time = get_transit_time(res.displayAddress, end_address) // 60
+        res.travel_time = travel_time
+
+    return {'properties': json.dumps([x.__dict__ for x in results])}
 
 
 @app.route('/properties', methods=['GET'])
 def get_properties():
     print("get_properties")
+
     args = request.args
     url = args['url']
     end_address = args['address']
+    custom_scraper = args['custom_scraper']
 
     url = urllib.parse.unquote(url)
+
+    if custom_scraper == "true":
+        print("Using custom scraper")
+        return get_rightmove_properties_custom_scraper(url, end_address)
 
     return get_rightmove_properties(url, end_address)
 
@@ -65,9 +90,12 @@ def get_summary():
 
 @app.route('/distance', methods=['GET'])
 def get_distance():
+    print("get_distance")
+
     args = request.args
     start_address = args['start_address']
     end_address = args['end_address']
+
     return {'time': get_transit_time(start_address, end_address)}
 
 
