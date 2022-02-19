@@ -48,7 +48,7 @@ const CustomPropertyItem = ({ property }: { property: CustomProperty }) => {
         />
       </ButtonGroup>
       <Center>
-        <Box w="50%">
+        <Box w="33%">
           <Carousel>
             {property.propertyImages.images.map((e: Image) => {
               return (

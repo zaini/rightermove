@@ -118,17 +118,21 @@ def property_json_to_object(property_json):
 
 def get_property_objects(properties_json):
     properties = []
+    property_ids = set()
     for property_json in properties_json:
         property = property_json_to_object(property_json)
-        properties.append(property)
+        if property.id not in property_ids:
+            properties.append(property)
+            property_ids.add(property.id)
     return properties
 
 
 def get_properties_json(url):
     property_jsons = []
     while True:
-        url += '&index=' + str(len(property_jsons))
-        html = requests.get(url)
+        url_with_index = url + '&index=' + str(len(property_jsons))
+
+        html = requests.get(url_with_index)
         soup = BeautifulSoup(html.text, 'html.parser')
         script_tags = soup.findAll('script')
 
@@ -152,8 +156,9 @@ def get_properties(url):
 
 
 if __name__ == '__main__':
-    url = "https://www.rightmove.co.uk/property-for-sale/find.html?locationIdentifier=REGION%5E599&minBedrooms=1&propertyTypes=&includeSSTC=false&mustHave=&dontShow=&furnishTypes=&keywords="
-    properties = get_properties(url)
-    property = properties[0]
-    print(property.propertyImages)
-    print(len(properties))
+    # url = "https://www.rightmove.co.uk/property-for-sale/find.html?locationIdentifier=REGION%5E599&minBedrooms=1&propertyTypes=&includeSSTC=false&mustHave=&dontShow=&furnishTypes=&keywords="
+    # properties = get_properties(url)
+    # property = properties[0]
+    # print(property.propertyImages)
+    # print(len(properties))
+    pass

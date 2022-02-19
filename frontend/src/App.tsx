@@ -18,7 +18,6 @@ import {
 } from "@chakra-ui/react";
 import PropertyItem from "./components/PropertyItem";
 import { ArrowDownIcon, ArrowUpIcon } from "@chakra-ui/icons";
-import { Property } from "./types";
 import CustomPropertyItem from "./components/CustomPropertyItem";
 
 const App = () => {
@@ -81,8 +80,6 @@ const App = () => {
   useEffect(() => {
     sortProperties();
   }, [properties, sortType, increasingSort]);
-
-  console.log(properties);
 
   return (
     <Box mx={16}>
