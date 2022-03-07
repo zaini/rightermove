@@ -142,7 +142,7 @@ def get_properties_json(url):
                 script_body = script_body[len('window.jsonModel = '):]
                 j = json.loads(script_body)
                 results_count = j['resultCount']
-                if len(property_jsons) >= int(results_count):
+                if len(property_jsons) >= int(results_count.replace(',', '')):
                     return property_jsons
                 properties = j['properties']
                 property_jsons.extend(properties)
