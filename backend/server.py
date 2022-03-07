@@ -2,6 +2,8 @@ import os
 import urllib.parse
 import googlemaps
 import json
+from dotenv import load_dotenv
+from datetime import datetime
 from rightmove_webscraper import RightmoveData
 from flask import Flask, request
 from flask_cors import CORS
@@ -11,14 +13,19 @@ from utils.scraper import get_properties as get_properties_custom_scraper
 app = Flask(__name__)
 CORS(app)
 
-GOOGLE_API_KEY = os.environ["GOOGLE_API_KEY"]
+load_dotenv()
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 
 gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
 
 
 @lfu_cache(maxsize=512)
-def get_transit_time(start, end, arrival_time=1644915600):
+def get_transit_time(start, end, arrival_time=None):
     print("get_transit_time", start, end)
+
+    if not arrival_time:
+        now = datetime.now().strftime("%Y-%m-%d") + " 09:00:00"
+        arrival_time = datetime.fromisoformat(now).timestamp()
 
     directions_result = gmaps.directions(start,
                                          end,
