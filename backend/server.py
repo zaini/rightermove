@@ -21,11 +21,11 @@ gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
 
 @lfu_cache(maxsize=512)
 def get_transit_time(start, end, arrival_time=None):
-    print("get_transit_time", start, end)
-
     if not arrival_time:
         now = datetime.now().strftime("%Y-%m-%d") + " 09:00:00"
         arrival_time = datetime.fromisoformat(now).timestamp()
+
+    print("get_transit_time", start, end, arrival_time)
 
     directions_result = gmaps.directions(start,
                                          end,
@@ -37,7 +37,7 @@ def get_transit_time(start, end, arrival_time=None):
         return -1
 
 
-@lfu_cache(maxsize=128)
+@lfu_cache(maxsize=512)
 def get_rightmove_properties(url, end_address):
     print("get_rightmove_properties")
 
@@ -52,7 +52,7 @@ def get_rightmove_properties(url, end_address):
     return {'properties': results.to_json(orient='records')}
 
 
-# @lfu_cache(maxsize=128)
+@lfu_cache(maxsize=512)
 def get_rightmove_properties_custom_scraper(url, end_address):
     print("get_rightmove_properties_custom_scraper")
 

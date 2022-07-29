@@ -19,18 +19,20 @@ import {
 import PropertyItem from "./components/PropertyItem";
 import { ArrowDownIcon, ArrowUpIcon } from "@chakra-ui/icons";
 import CustomPropertyItem from "./components/CustomPropertyItem";
+import { CustomProperty } from "./types";
 
 const App = () => {
   const [searchUrl, setSearchUrl] = useState(
     "https://www.rightmove.co.uk/property-for-sale/find.html?locationIdentifier=USERDEFINEDAREA%5E%7B%22id%22%3A7170387%7D&minBedrooms=2&maxPrice=600000&minPrice=500000&propertyTypes=detached%2Cflat%2Csemi-detached%2Cterraced&secondaryDisplayPropertyType=housesandflats&mustHave=&dontShow=newHome%2CsharedOwnership%2Cretirement&furnishTypes=&keywords="
   );
   const [address, setAddress] = useState("Soho Square London");
-  const [properties, setProperties] = useState([]);
+  const [properties, setProperties] = useState<CustomProperty[]>([]);
   const [summary, setSummary] = useState([]);
   const [sortType, setSortType] = useState("price");
   const [increasingSort, setIncreasingSort] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [useCustomScraper, setUseCustomScraper] = useState(true);
+  const [averageTravelTime, setAverageTravelTime] = useState(-1);
 
   const fetchProperties = async () => {
     const url = `http://localhost:5000/properties?url=${encodeURIComponent(
@@ -40,7 +42,20 @@ const App = () => {
     try {
       const response = await fetch(url);
       const json = await response.json();
-      setProperties(JSON.parse(json["properties"]));
+      const tempProperties: CustomProperty[] = JSON.parse(json["properties"]);
+      setProperties(tempProperties);
+
+      // Update the summary after we get the properties since this is when we get the travel times.
+      const propertiesWithTravelTime = tempProperties.filter(
+        (e: CustomProperty) => e.travel_time
+      );
+      const avgTravelTime =
+        propertiesWithTravelTime.reduce(
+          (total, curr) => total + curr.travel_time,
+          0
+        ) / propertiesWithTravelTime.length;
+
+      setAverageTravelTime(avgTravelTime);
     } catch (error) {
       console.log("error", error);
     }
@@ -61,7 +76,7 @@ const App = () => {
   };
 
   const sortProperties = () => {
-    let sortedProperties = properties.sort((a, b) => {
+    let sortedProperties = properties.sort((a: any, b: any) => {
       if (increasingSort) {
         return b[sortType] - a[sortType];
       }
@@ -123,16 +138,21 @@ const App = () => {
           <Spinner />
         </Center>
       ) : (
-        <List my={4}>
-          {summary.map((e) => {
-            return (
-              <ListItem>
-                {e["count"]}x {e["number_bedrooms"]} bedrooms with an average
-                cost of £{Math.floor(e["mean"])}
-              </ListItem>
-            );
-          })}
-        </List>
+        <>
+          <List my={4}>
+            {summary.map((e) => {
+              return (
+                <ListItem>
+                  {e["count"]}x {e["number_bedrooms"]} bedrooms with an average
+                  cost of £{Math.floor(e["mean"])}
+                </ListItem>
+              );
+            })}
+          </List>
+          <br />
+          {averageTravelTime &&
+            `Average Travel Time: ${Math.ceil(averageTravelTime)} minutes.`}
+        </>
       )}
 
       <InputGroup my={2}>
